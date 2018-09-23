@@ -9,6 +9,7 @@ const toggleTime = parseInt(s.toggleTime);
 
 export default class Sidebar extends React.Component {
   static defaultProps = {
+    pinned: false,
     position: 'left'
   };
 
@@ -16,14 +17,21 @@ export default class Sidebar extends React.Component {
   toggling = false;
   hideContentTimeout = null;
   width = null;
-  state = {
-    visible: true,
-    pinned: false,
-    renderContent: true
-  };
+
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      visible: true,
+      pinned: props.pinned,
+      renderContent: true
+    };
+  }
 
   componentDidMount() {
-    this.hideTimeoutId = setTimeout(() => this.toggleVisibility(false), 3000);
+    if (!this.state.pinned) {
+      this.hideTimeoutId = setTimeout(() => this.toggleVisibility(false), 3000);
+    }
   }
 
   componentWillUnmount() {
@@ -35,10 +43,9 @@ export default class Sidebar extends React.Component {
     const {position, children} = this.props;
     const {visible, pinned, renderContent} = this.state;
 
-    const className = cls({
+    const className = cls(s[position], {
       [s.container]: true,
       [s.pinned]: pinned,
-      [s.left]: (position === 'left'),
       [s.hidden]: !visible,
       [s.empty]: !renderContent
     });
@@ -76,6 +83,10 @@ export default class Sidebar extends React.Component {
     );
   }
 
+  get nodeWidth() {
+    return this.node.getBoundingClientRect().width;
+  }
+
   handleClick = () => {
     this.allowHide = false;
   }
@@ -103,12 +114,14 @@ export default class Sidebar extends React.Component {
 
   handlePinButtonClick = () => {
     const pinned = !this.state.pinned;
-    this.width = pinned ? this.node.getBoundingClientRect().width : null;
+    this.width = pinned ? this.nodeWidth : null;
     this.updateNodeWidth();
     this.setState({pinned});
   }
 
   handleResizeStart = event => {
+    this.width = this.nodeWidth;
+    this.updateNodeWidth();
     this.resizeInfo = {
       startPageX: event.pageX,
       initialWidth: this.width
@@ -119,7 +132,8 @@ export default class Sidebar extends React.Component {
   }
 
   handleResize = event => {
-    this.width = this.resizeInfo.initialWidth + (event.pageX - this.resizeInfo.startPageX);
+    const k = (this.state.position === 'left') ? 1 : -1;
+    this.width = this.resizeInfo.initialWidth + ((event.pageX - this.resizeInfo.startPageX) * k);
     this.updateNodeWidth();
   }
 

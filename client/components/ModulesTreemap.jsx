@@ -93,6 +93,9 @@ export default class ModulesTreemap extends React.Component {
           weightProp={store.activeSize}
           onMouseLeave={this.handleMouseLeaveTreemap}
           onGroupHover={this.handleTreemapGroupHover}/>
+        <Sidebar position="right" pinned>
+          Foo
+        </Sidebar>
         <Tooltip visible={showTooltip}>
           {tooltipContent}
         </Tooltip>
